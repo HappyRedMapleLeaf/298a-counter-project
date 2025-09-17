@@ -1,9 +1,9 @@
 # Tiny Tapeout project information
 project:
-  title:        "test"      # Project title
+  title:        "counter exercise"      # Project title
   author:       "Evan Li"      # Your name
   discord:      "evan.li"      # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
-  description:  "testing fr"      # One line description of what your project does
+  description:  "8-bit tri-state counter, sync load, async reset"      # One line description of what your project does
   language:     "Verilog" # other examples include SystemVerilog, Amaranth, VHDL, etc
   clock_hz:     10       # Clock frequency in Hz (or 0 if not applicable)
 
@@ -11,13 +11,13 @@ project:
   tiles: "1x1"          # Valid values: 1x1, 1x2, 2x2, 3x2, 4x2, 6x2 or 8x2
 
   # Your top module name must start with "tt_um_". Make it unique by including your github username:
-  top_module:  "tt_um_example"
+  top_module:  "tt_um_counter"
 
   # List your project's source files here.
   # Source files must be in ./src and you must list each source file separately, one per line.
   # Don't forget to also update `PROJECT_SOURCES` in test/Makefile.
   source_files:
-    - "project.v"
+    - "counter.v"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 # This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).
@@ -33,24 +33,24 @@ pinout:
   ui[7]: "in7"
 
   # Outputs
-  uo[0]: "o0"
-  uo[1]: "o1"
-  uo[2]: "o2"
-  uo[3]: "o3"
-  uo[4]: "o4"
-  uo[5]: "o5"
-  uo[6]: "o6"
-  uo[7]: "o7"
+  uo[0]: "out0"
+  uo[1]: "out1"
+  uo[2]: "out2"
+  uo[3]: "out3"
+  uo[4]: "out4"
+  uo[5]: "out5"
+  uo[6]: "out6"
+  uo[7]: "out7"
 
   # Bidirectional pins
-  uio[0]: "io0"
-  uio[1]: "io1"
-  uio[2]: "io2"
-  uio[3]: "io3"
-  uio[4]: "io4"
-  uio[5]: "io5"
-  uio[6]: "io6"
-  uio[7]: "io7"
+  uio[0]: "load_n"
+  uio[1]: "output_enable_n"
+  uio[2]: ""
+  uio[3]: ""
+  uio[4]: ""
+  uio[5]: ""
+  uio[6]: ""
+  uio[7]: ""
 
 # Do not change!
 yaml_version: 6
