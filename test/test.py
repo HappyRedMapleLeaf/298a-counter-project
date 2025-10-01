@@ -11,6 +11,10 @@ async def init_dut(dut):
     dut.ena.value = 1
     dut.ui_in.value = 0b00000001
     dut.uio_in.value = 0
+
+    dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 1)
+    
     dut.rst_n.value = 0
     await Timer(100, units="ps")
     dut.rst_n.value = 1
