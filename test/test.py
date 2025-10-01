@@ -15,9 +15,16 @@ async def test_counting(dut):
     dut.ui_in.value = 0
     dut.uio_in.value = 0b00000001  # load_n=1, output_enable_n=0
     
+    # Let initial values settle
+    await Timer(100, units="ps")
+    
     # Test async reset assertion
     dut.rst_n.value = 0
     await Timer(100, units="ps")  # Wait a fraction of clock cycle (100 picoseconds)
+    
+    # Debug: Check internal signals
+    dut._log.info(f"Debug - rst_n: {dut.rst_n.value}, uio_in: {dut.uio_in.value}")
+    dut._log.info(f"Debug - counter_bits: {dut.counter_bits.value}, uo_out: {dut.uo_out.value}")
     
     # Check that counter is reset to 0 immediately (async reset)
     reset_value = int(dut.uo_out.value)
@@ -102,7 +109,7 @@ async def test_counter_load_values(dut):
     # Reset
     dut.ena.value = 1
     dut.ui_in.value = 0
-    dut.uio_in.value = 0b00000001  # load_n=1, high_z=0
+    dut.uio_in.value = 0b00000001  # load_n=1, output_enable_n=0
     dut.rst_n.value = 0
     await Timer(100, units="ps")  # Wait for async reset
     dut.rst_n.value = 1
@@ -148,7 +155,7 @@ async def test_counter_high_z_output(dut):
 
     dut.ena.value = 1
     dut.ui_in.value = 0
-    dut.uio_in.value = 0b00000001  # load_n=1, high_z=0
+    dut.uio_in.value = 0b00000001  # load_n=1, output_enable_n=0
     dut.rst_n.value = 0
     await Timer(100, units="ps")  # Wait for async reset
     dut.rst_n.value = 1
@@ -161,7 +168,7 @@ async def test_counter_high_z_output(dut):
     dut._log.info(f"Normal output value: {normal_output}")
 
     # Enable high-Z output (uio_in[1] = 1)
-    dut.uio_in.value = 0b00000011  # load_n=1, high_z=1
+    dut.uio_in.value = 0b00000011  # load_n=1, output_enable_n=1
     await ClockCycles(dut.clk, 1)
     
     # Check that output is in high-impedance state
@@ -170,8 +177,8 @@ async def test_counter_high_z_output(dut):
     # Convert to string to check for 'z' state
     hz_str = str(hz_output)
     dut._log.info(f"High-Z output: {hz_str}")
-    # The output should be in high-impedance state (showing as 'z' or similar)
-    assert 'z' in hz_str.lower() or hz_str == 'xxxxxxxx', f"Expected high-Z output, got {hz_str}"
+    # The output should be in high-impedance state
+    assert hz_str == 'xxxxxxxx', f"Expected high-Z output, got {hz_str}"
 
     # Disable high-Z output (uio_in[1] = 0)
     dut.uio_in.value = 0b00000001  # load_n=1, high_z=0
