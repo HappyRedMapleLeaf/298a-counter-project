@@ -26,6 +26,7 @@ async def test_counting(dut):
     dut._log.info("Testing counter")
     
     await init_dut(dut)
+    await ClockCycles(dut.clk, 1)
 
     # === Test Normal Counting ===
     dut._log.info("Testing normal counting")
@@ -96,12 +97,8 @@ async def test_counter_load_values(dut):
         
         dut.uio_in.value = test_val
         
-        dut.ui_in.value = 0b00000001
-        await Timer(100, units="ps")
-        dut.ui_in.value = 0b00000000
-        await Timer(100, units="ps")
-        
-        await ClockCycles(dut.clk, 1)
+        dut.ui_in.value = 0b00000000  # Assert load_n=0
+        await ClockCycles(dut.clk, 2)
         
         actual = int(dut.uio_out.value)
         assert actual == test_val, f"Load failed: expected {test_val}, got {actual}"
