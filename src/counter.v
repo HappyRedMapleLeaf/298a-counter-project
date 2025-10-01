@@ -19,7 +19,7 @@ module tt_um_counter (
     reg [7:0] counter_bits;
     reg sync_load_prev;
 
-    assign uio_oe = {8{(ui_in[0] || !ui_in[1])}};
+    assign uio_oe = {8{(ui_in[0] && !ui_in[1])}};
     assign uio_out = counter_bits;
     assign uo_out = 0;
 
