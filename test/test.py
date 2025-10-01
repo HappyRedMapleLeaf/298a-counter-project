@@ -14,11 +14,11 @@ async def init_dut(dut):
 
     dut.rst_n.value = 1
     await ClockCycles(dut.clk, 1)
-    
+
     dut.rst_n.value = 0
-    await Timer(100, units="ps")
+    await Timer(5, units="ns")
     dut.rst_n.value = 1
-    await Timer(100, units="ps")
+    await Timer(5, units="ns")
     
     # Check that counter is reset to 0 immediately (async reset)
     reset_value = int(dut.uio_out.value)
