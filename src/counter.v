@@ -6,7 +6,7 @@
 `default_nettype none
 
 module tt_um_counter (
-    input  wire [7:0] ui_in,    // Dedicated inputs
+    input  wire [7:0] ui_in,    // Dedicated inputs; [0] - load_n; [1] - output_enable_n
     output wire [7:0] uo_out,   // Dedicated outputs
     input  wire [7:0] uio_in,   // IOs: Input path
     output wire [7:0] uio_out,  // IOs: Output path
@@ -19,22 +19,21 @@ module tt_um_counter (
     reg [7:0] counter_bits;
     reg sync_load_prev;
 
-    // set uio to all inputs (but only 0 and 1 are used)
-    assign uio_oe = 0;
-    assign uio_out = 0;
-    assign uo_out = uio_in[1] ? 8'bz : counter_bits;
+    assign uio_oe = {8{(!ui_in[0] || ui_in[1])}};
+    assign uio_out = counter_bits;
+    assign uo_out = 0;
 
     // on rst_n falling edge, counter bits set to 0
     // on clock rising edge, increment counter
-    // or set counter bits to ui_in if uio_in[0] (load_n) synchronized falling edge
+    // or set counter bits to ui_in if ui_in[0] (load_n) synchronized falling edge
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             counter_bits <= 8'b0;
             sync_load_prev <= 1'b1;
         end else begin
-            sync_load_prev <= uio_in[0];
-            if (!uio_in[0] && sync_load_prev) begin // sync falling edge of load_n
-                counter_bits <= ui_in;
+            sync_load_prev <= ui_in[0];
+            if (!ui_in[0] && sync_load_prev) begin // sync falling edge of load_n
+                counter_bits <= uio_in;
             end else begin
                 counter_bits <= counter_bits + 1;
             end
