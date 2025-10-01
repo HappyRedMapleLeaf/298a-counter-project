@@ -32,11 +32,7 @@ module tt_um_counter (
             sync_load_prev <= 1'b1;
         end else begin
             sync_load_prev <= ui_in[0];
-            if (!ui_in[0] && sync_load_prev) begin // sync falling edge of load_n
-                counter_bits <= uio_in;
-            end else begin
-                counter_bits <= counter_bits + 1;
-            end
+            counter_bits <= counter_bits + 1;
         end
     end
 
