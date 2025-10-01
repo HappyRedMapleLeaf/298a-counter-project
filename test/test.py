@@ -1,6 +1,6 @@
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles
+from cocotb.triggers import ClockCycles, Timer
 
 
 @cocotb.test()
@@ -13,15 +13,24 @@ async def test_counting(dut):
     dut._log.info("Testing reset behavior")
     dut.ena.value = 1
     dut.ui_in.value = 0
-    dut.uio_in.value = 0b00000001  # load_n=1, high_z=0
+    dut.uio_in.value = 0b00000001  # load_n=1, output_enable_n=0
+    
+    # Test async reset assertion
     dut.rst_n.value = 0
+    await Timer(100, units="ps")  # Wait a fraction of clock cycle (100 picoseconds)
     
     # Check that counter is reset to 0 immediately (async reset)
     reset_value = int(dut.uo_out.value)
-    assert reset_value == 0, f"Reset failed: expected 0, got {reset_value}"
+    assert reset_value == 0, f"Async reset assertion failed: expected 0, got {reset_value}"
     
-    # Release reset
+    # Test async reset deassertion
     dut.rst_n.value = 1
+    await Timer(100, units="ps")  # Wait to ensure reset release propagates
+    
+    # Counter should still be 0 after reset release (before any clock edge)
+    post_reset_value = int(dut.uo_out.value)
+    assert post_reset_value == 0, f"Post-reset value failed: expected 0, got {post_reset_value}"
+    
     await ClockCycles(dut.clk, 1)
 
     # === Test Normal Counting ===
@@ -39,6 +48,7 @@ async def test_counting(dut):
     
     # Apply reset
     dut.rst_n.value = 0
+    await Timer(100, units="ps")  # Wait for async reset to propagate
     
     # Check that counter is reset to 0 immediately (async reset)
     reset_value = int(dut.uo_out.value)
@@ -46,6 +56,7 @@ async def test_counting(dut):
 
     # Release reset and verify counting resumes from 0
     dut.rst_n.value = 1
+    await Timer(100, units="ps")  # Wait for reset release
     await ClockCycles(dut.clk, 1)
     assert int(dut.uo_out.value) == 1, f"Post-reset counting failed: expected 1, got {int(dut.uo_out.value)}"
 
@@ -55,11 +66,14 @@ async def test_counting(dut):
     # Load 254 into counter to test overflow quickly
     dut.ui_in.value = 254
     dut.uio_in.value = 0b00000001  # load_n=1
-    await ClockCycles(dut.clk, 1)
+    await Timer(100, units="ps")  # Ensure signal is stable
     dut.uio_in.value = 0b00000000  # load_n=0 (falling edge)
+    await Timer(100, units="ps")  # Wait for edge to propagate
+    
+    # Load is synchronous - wait for clock edge for load to take effect
     await ClockCycles(dut.clk, 1)
     
-    # Verify we loaded 254
+    # Verify we loaded 254 after the clock edge
     assert int(dut.uo_out.value) == 254
     
     # Set load_n back to 1 for normal counting
@@ -90,7 +104,9 @@ async def test_counter_load_values(dut):
     dut.ui_in.value = 0
     dut.uio_in.value = 0b00000001  # load_n=1, high_z=0
     dut.rst_n.value = 0
+    await Timer(100, units="ps")  # Wait for async reset
     dut.rst_n.value = 1
+    await Timer(100, units="ps")  # Wait for reset release
     await ClockCycles(dut.clk, 1)
 
     # Test loading different values
@@ -104,11 +120,14 @@ async def test_counter_load_values(dut):
         
         # Create falling edge on load_n (uio_in[0])
         dut.uio_in.value = 0b00000001  # load_n=1
-        await ClockCycles(dut.clk, 1)
+        await Timer(100, units="ps")  # Ensure signal is stable before edge
         dut.uio_in.value = 0b00000000  # load_n=0 (falling edge)
+        await Timer(100, units="ps")  # Wait for edge to be registered
+        
+        # Load is synchronous - wait for clock edge for load to take effect
         await ClockCycles(dut.clk, 1)
         
-        # Check that the value was loaded
+        # Check that the value was loaded after the clock edge
         actual = int(dut.uo_out.value)
         assert actual == test_val, f"Load failed: expected {test_val}, got {actual}"
         
@@ -131,7 +150,9 @@ async def test_counter_high_z_output(dut):
     dut.ui_in.value = 0
     dut.uio_in.value = 0b00000001  # load_n=1, high_z=0
     dut.rst_n.value = 0
+    await Timer(100, units="ps")  # Wait for async reset
     dut.rst_n.value = 1
+    await Timer(100, units="ps")  # Wait for reset release
     await ClockCycles(dut.clk, 1)
 
     # Let counter increment a few times to have a known value
